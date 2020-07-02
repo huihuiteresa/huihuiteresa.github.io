@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>huihui&#39;s blog</title>
+  <icon>https://www.gravatar.com/avatar/583b30761ca997c58221e236b9e1fa54</icon>
+  <subtitle>写点博客记录记录……</subtitle>
+  <link href="/atom.xml" rel="self"/>
+  
+  <link href="https://huihuiteresa.github.io/"/>
+  <updated>2020-07-01T13:39:04.114Z</updated>
+  <id>https://huihuiteresa.github.io/</id>
+  
+  <author>
+    <name>小辉辉</name>
+    <email>huihui_teresa@163.com</email>
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>SQLServer行转列</title>
+    <link href="https://huihuiteresa.github.io/SqlServer/rowtocolumn/"/>
+    <id>https://huihuiteresa.github.io/SqlServer/rowtocolumn/</id>
+    <published>2020-07-01T13:24:20.000Z</published>
+    <updated>2020-07-01T13:39:04.114Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="建表，添加测试数据"><a href="#建表，添加测试数据" class="headerlink" title="建表，添加测试数据"></a>建表，添加测试数据</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">--删除临时表</span><br><span class="line">if object_id(&#39;tempdb..#demo&#39;) is not null</span><br><span class="line">     drop table #temp</span><br><span class="line"></span><br><span class="line">CREATE TABLE #demo(</span><br><span class="line">    row1 NVARCHAR(10),</span><br><span class="line">row2 NVARCHAR(10),</span><br><span class="line">col NVARCHAR(10),</span><br><span class="line">colval NVARCHAR(10)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">INSERT INTO #demo (row1,row2,col,colval)VALUES( N&#39;huihui&#39;, N&#39;1&#39;,N&#39;语文&#39;, N&#39;1&#39;  );</span><br><span class="line">INSERT INTO #demo (row1,row2,col,colval)VALUES( N&#39;huihui&#39;, N&#39;1&#39;,N&#39;数学&#39;, N&#39;2&#39;  );</span><br><span class="line">INSERT INTO #demo (row1,row2,col,colval)VALUES( N&#39;huihui&#39;, N&#39;1&#39;,N&#39;英语&#39;, N&#39;3&#39;  );</span><br><span class="line">INSERT INTO #demo (row1,row2,col,colval)VALUES( N&#39;huihui&#39;, N&#39;2&#39;,N&#39;英语&#39;, N&#39;3&#39;  );</span><br><span class="line">INSERT INTO #demo (row1,row2,col,colval)VALUES( N&#39;haha&#39;, N&#39;2&#39;,N&#39;英语&#39;, N&#39;3&#39;  );</span><br></pre></td></tr></table></figure><h3 id="行转列sql"><a href="#行转列sql" class="headerlink" title="行转列sql"></a>行转列sql</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">--sql</span><br><span class="line">declare  @col varchar(3000)&#x3D;&#39;&#39;, @selCol VARCHAR(3000)&#x3D;&#39;&#39;,@sql varchar(3000)&#x3D;&#39;&#39;;</span><br><span class="line">select @col&#x3D;@col+&#39;,[&#39;+[col]+&#39;]&#39;  from (select distinct [col] from #demo) a order by [col];</span><br><span class="line">select @selCol&#x3D;@selCol+&#39;,max([&#39;+[col]+&#39;]) as &#39;+&#39;[&#39;+[col]+&#39;]&#39;  from (select distinct [col] from #demo) a order by [col];</span><br><span class="line">select  @col&#x3D;right(@col,len(@col)-1);</span><br><span class="line">select  @selCol&#x3D;right(@selCol,len(@selCol)-1);</span><br><span class="line"></span><br><span class="line">set @sql&#x3D;&#39;select row1,row2,&#39;+@selCol+</span><br><span class="line">&#39; from( select row1,row2,&#39;+@col +&#39;from #demo a  </span><br><span class="line">pivot (max(colval) for col in(&#39;+@col+&#39;) </span><br><span class="line">) as pv ) b group by row1,row2&#39;;</span><br><span class="line">exec(@sql);</span><br></pre></td></tr></table></figure><h3 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h3><p>需要分组情况，网上找的大部分都是不带group by的，记录下。</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;建表，添加测试数据&quot;&gt;&lt;a href=&quot;#建表，添加测试数据&quot; class=&quot;headerlink&quot; title=&quot;建表，添加测试数据&quot;&gt;&lt;/a&gt;建表，添加测试数据&lt;/h3&gt;&lt;figure class=&quot;highlight plain&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;t
+      
+    
+    </summary>
+    
+    
+      <category term="SqlServer" scheme="https://huihuiteresa.github.io/categories/SqlServer/"/>
+    
+    
+      <category term="行转列" scheme="https://huihuiteresa.github.io/tags/%E8%A1%8C%E8%BD%AC%E5%88%97/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>设计模式原则</title>
+    <link href="https://huihuiteresa.github.io/designpatterns/principle/"/>
+    <id>https://huihuiteresa.github.io/designpatterns/principle/</id>
+    <published>2020-06-22T00:23:16.000Z</published>
+    <updated>2020-06-22T00:32:01.044Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="架构中的设计原则"><a href="#架构中的设计原则" class="headerlink" title="架构中的设计原则"></a>架构中的设计原则</h3><p><strong>单一职责原则</strong>：系统中的每一个对象都应该只有一个单独的职责，而所有对象所关注的就是自身职责的完成。</p><p><strong>里氏替换原则</strong>：在任何父类出现的地方都可以用它的子类来替换。</p><ol><li>子类必须完全实现父类的方法</li><li>子类可以有自己的特性</li><li>覆盖或者实现父类的方法时输入参数可以被放大</li><li>覆写或者实现父类的方法时输出结果可以被缩小。</li></ol><p><strong>依赖注入原则（依赖反转原则）</strong>：要依赖于抽象，不要依赖于具体的实现。</p><p>三点说明：</p><ol><li>高层模块不应该依赖低层模块，两者都应该依赖于抽象（抽象类或接口）</li><li>抽象（抽象类或接口）不应该依赖于细节（具体实现类）</li><li>细节（具体实现类）应该依赖抽象</li></ol><p>实现方式：</p><ol><li>通过构造函数传递依赖对象</li><li>通过setter方法传递依赖对象</li><li>接口声明实现依赖对象</li></ol><p><strong>接口分离原则</strong>：不应该强迫客户程序依赖它们不需要使用的方法。</p><p><strong>迪米特原则</strong>：一个对象应当对其他对象尽可能少的了解。</p><p><strong>开闭原则</strong>：一个对象对扩展开放，对修改关闭。</p><p><strong>合成复用原则</strong>：尽量使用合成/聚合的方式，而不是使用继承。</p><h3 id="接口"><a href="#接口" class="headerlink" title="接口"></a>接口</h3><ol><li>接口的思想就是“封装隔离”</li><li>接口与抽象类的选择<ul><li>优先使用接口；</li><li>在既要定义子类行为，又要为子类提供公共的功能时应选择抽象类；</li></ul></li></ol>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;架构中的设计原则&quot;&gt;&lt;a href=&quot;#架构中的设计原则&quot; class=&quot;headerlink&quot; title=&quot;架构中的设计原则&quot;&gt;&lt;/a&gt;架构中的设计原则&lt;/h3&gt;&lt;p&gt;&lt;strong&gt;单一职责原则&lt;/strong&gt;：系统中的每一个对象都应该只有一个单独的职责，
+      
+    
+    </summary>
+    
+    
+      <category term="设计模式" scheme="https://huihuiteresa.github.io/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+    
+      <category term="设计模式原则" scheme="https://huihuiteresa.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E5%8E%9F%E5%88%99/"/>
+    
+      <category term="设计模式" scheme="https://huihuiteresa.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"/>
+    
+  </entry>
+  
+</feed>
