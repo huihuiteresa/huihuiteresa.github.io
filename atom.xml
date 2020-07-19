@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://huihuiteresa.github.io/"/>
-  <updated>2020-07-01T13:39:04.114Z</updated>
+  <updated>2020-07-19T14:50:11.617Z</updated>
   <id>https://huihuiteresa.github.io/</id>
   
   <author>
@@ -15,6 +15,35 @@
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>WebAPI全局捕获异常</title>
+    <link href="https://huihuiteresa.github.io/WebAPI/webapiexception/"/>
+    <id>https://huihuiteresa.github.io/WebAPI/webapiexception/</id>
+    <published>2020-07-19T14:46:00.000Z</published>
+    <updated>2020-07-19T14:50:11.617Z</updated>
+    
+    <content type="html"><![CDATA[<h3 id="WebApi异常捕获方法"><a href="#WebApi异常捕获方法" class="headerlink" title="WebApi异常捕获方法"></a>WebApi异常捕获方法</h3><ol><li>添加一个类处理: ApiErrorHandler<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">public class ApiErrorHandler : ExceptionFilterAttribute</span><br><span class="line">&#123;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;summary&gt;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; 异常处理</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;&#x2F;summary&gt;</span><br><span class="line">    &#x2F;&#x2F;&#x2F; &lt;param name&#x3D;&quot;context&quot;&gt;&lt;&#x2F;param&gt;</span><br><span class="line">    public override void OnException(HttpActionExecutedContext context)</span><br><span class="line">    &#123;</span><br><span class="line">        HttpResponseMessage response &#x3D; null;</span><br><span class="line"> </span><br><span class="line">        if (context.Exception is NotImplementedException)</span><br><span class="line">        &#123;</span><br><span class="line">            response &#x3D; new HttpResponseMessage(HttpStatusCode.NotImplemented);</span><br><span class="line">        &#125;</span><br><span class="line">        else if (context.Exception is TimeoutException)</span><br><span class="line">        &#123;</span><br><span class="line">            response &#x3D; new HttpResponseMessage(HttpStatusCode.RequestTimeout);</span><br><span class="line">        &#125;</span><br><span class="line">        else</span><br><span class="line">        &#123;</span><br><span class="line">            response &#x3D; new HttpResponseMessage(HttpStatusCode.InternalServerError);</span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        &#x2F;&#x2F;日志记录</span><br><span class="line">        LogHelper.Error(context.Exception.ToString());</span><br><span class="line">                 </span><br><span class="line">                &#x2F;&#x2F;可以发送邮件通知相关人员网站发生异常了</span><br><span class="line">        &#x2F;&#x2F;Helpers.SendEmail(&quot;网站异常(ApiError)&quot;, context.Exception.ToString());</span><br><span class="line"> </span><br><span class="line">        context.Response &#x3D; response;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>ExceptionFilterAttribute 需要添加引用 System.Web.Http</li></ol><p>HttpResponseMessage 需要添加引用 System.Net.Http.dll</p><ol start="2"><li>在WebApiConfig内添加如下代码<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GlobalConfiguration.Configuration.Filters.Add(new ApiErrorHandler());</span><br></pre></td></tr></table></figure></li></ol><p>这时候在WebApi内发生的异常都会进入这个方法</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;h3 id=&quot;WebApi异常捕获方法&quot;&gt;&lt;a href=&quot;#WebApi异常捕获方法&quot; class=&quot;headerlink&quot; title=&quot;WebApi异常捕获方法&quot;&gt;&lt;/a&gt;WebApi异常捕获方法&lt;/h3&gt;&lt;ol&gt;
+&lt;li&gt;添加一个类处理: ApiErrorHandler
+      
+    
+    </summary>
+    
+    
+      <category term="WebAPI" scheme="https://huihuiteresa.github.io/categories/WebAPI/"/>
+    
+    
+      <category term="WebAPI捕获异常" scheme="https://huihuiteresa.github.io/tags/WebAPI%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8/"/>
+    
+      <category term=".NET捕获异常" scheme="https://huihuiteresa.github.io/tags/NET%E6%8D%95%E8%8E%B7%E5%BC%82%E5%B8%B8/"/>
+    
+  </entry>
   
   <entry>
     <title>SQLServer行转列</title>
