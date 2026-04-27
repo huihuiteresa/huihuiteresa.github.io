@@ -1,7 +1,7 @@
 ~~~sql
 
 --例如这个工单
-select FormulaVersion,ProductionLineCode,ProcessSectionCode, *
+select FormulaVersion,ProductionLineCode,ProcessSectionCode,TargetJarNo, *
 from PR_WorkOrder where WorkOrderNo='ABMG2026003108';
 
 --1.获取bom数据
@@ -58,9 +58,10 @@ from #compute3 group by MaterialCode,MaterialName,DataType,BOMSortNum,LossCoeffi
 
 --查询已投料量
 select MaterialCode,sum(InputQuantity) itemFeedQty
+into #feededQty
 from (
     select MaterialCode,
-       case when OperationType='2' then 0-InputQuantity
+       case when OperationType='2' then 0-InputQuantity    --判断是投料还是退料
             else InputQuantity end InputQuantity
 from V_PR_InputMaterialDetail where IsDeleted=0 and WorkOrderNo='ABMG2026003108'
      ) tt group by tt.MaterialCode;
@@ -114,5 +115,69 @@ and ProcessSectionCode='102' and TargetLocatorCode is not null and TargetSubinVe
 and (UseStatus is null or UseStatus!='4') and MaterialCode in ('111201040001','113502010008','210213060004');
 
 
+
+--遍历bomlist,后台最终返回数据
+select SkuMclassCode,SkuBclassCode, * from #bomlist;  --111201040001,进口酒花浸膏四氢异构
+
+--取#bomlist 的一条数据做demo吧
+--获取tmpStockMats
+----发酵工单的，只查询对应发酵罐的库存信息
+select * into #tmpStockMats  from #stockMats where MaterialCode='111201040001' and CanQuantity is not null and CanQuantity>0
+                         and TargetLocatorCode=''  --如果工单TargetJar有值
+                         order by CreatedOn;  --首先 SkuMclassCode == "001" && item.SkuBclassCode == "21"
+                         --否则
+select * into #tmpStockMats from #stockMats where MaterialCode='111201040001' and CanQuantity is not null and CanQuantity>0
+                         and TargetLocatorCode in (select LocatorCode from #noPTLineLocatorCodes)
+                         order by CreatedOn;
+
+----过滤工单
+--------SkuMclassCode == "002"
+select * into #tmpStockMats from #stockMats where MaterialCode='111201040001' and CanQuantity is not null and CanQuantity>0
+                         and TargetSubinVenToryCode='ZZ01' and trim(isnull(ApportionStatus,'0'))='0'
+                         order by CreatedOn;
+--------否则
+select * into #tmpStockMats from #stockMats where MaterialCode='111201040001' and CanQuantity is not null and CanQuantity>0
+                         and ProcessSectionCode='102'
+                         and TargetLocatorCode in (select LocatorCode from #noPTLineLocatorCodes)
+                         order by CreatedOn;
+
+
+--拼接数据
+----果当前工厂存在ERP系统，且skuBClassCode在{ "011", "021", "022", "023", "031", "032", "040" }且skuBClassCode == "14"
+------根据物料获取erp库存
+--------如果erp没有库存,构造空的投料物料
+select a.MaterialCode,MaterialName,NeedQuantity
+,b.itemFeedQty as HaveQuantity  --已投量
+,0 StockQuantity --库存量
+, 0 InputQuantity --已投量
+,case when NeedQuantity-isnull(b.itemFeedQty,0)<0 then 0 else NeedQuantity-isnull(b.itemFeedQty,0) end PlanQuantity --代投量
+,SkuBclassCode,SkuMclassCode,SkuMclassName,CategoryName
+,0 FrozenQuantity --冻结量
+,0 UsableQuantity --可投量
+,BOMSortNum
+from #bomlist a
+left join #feededQty b on a.MaterialCode=b.MaterialCode
+where a.MaterialCode='111201040001'
+--------有库存,遍历erp库存
+select top 1 *   --这个就是库存信息
+into #Locator
+from V_MD_Locator
+where IsDeleted = 0
+  and LocatorCode in (
+      select l.LocatorCode
+from BS_LocatorPTLine lp
+left join MD_Locator l on l.IsDeleted=0 and l.LocatorCode=lp.LocatorCode and l.SubinVenToryCode=lp.SubinVenToryCode
+where lp.IsDeleted=0 and lp.ProductionLineCode='1005'
+    );
+
+select MaterialCode,MaterialName
+,NeedQuantity --需求量
+,b.itemFeedQty as HaveQuantity  --已投量
+--,pInvenItem.transaction_quantity 库存量
+,0 
+from #bomlist a
+left join #feededQty b on a.MaterialCode=b.MaterialCode
+inner join #Locator c on 1=1
+where a.MaterialCode='111201040001'
 ~~~
 
